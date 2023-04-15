@@ -1,0 +1,106 @@
+﻿@page "/service"
+@using SZES.Data
+@using BlazorDateRangePicker
+@*@inject WeatherForecastService ForecastService*@
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Bescheinigung für @userName</PageTitle>
+@if (!(userName == string.Empty))
+{
+        <h3>Anwesenheit-Bescheinigung</h3>
+        <h4>Hallo: @userName</h4><br />
+            <div class="form-control form-control-sm w-50">
+                <label>Bitte wählen Sie den gewünschten Zeitraum aus:</label><br>
+                <DateRangePicker class="form-control form-control-sm" placeholder="Wählen Sie den Zeitraum ..." 
+                OnRangeSelect="OnRangeSelect" MaxDate="DateTimeOffset.Now"
+                ApplyLabel="Anwenden" CancelLabel="Beenden"
+                />
+            </div><br />
+
+
+    <button class="btn-success" @onclick="Print" style="margin-bottom:10px;">Print</button>
+    <br />
+    <br />
+    <p>Hiermit bestätigen wir die Anwesenheit von unserem Azubi @userName für den Zeitraum vom @StartDatum bis @EndDatum wie folgt: </p>
+
+    @if (forecasts == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Angemeldet</th>
+                    <th>Abgemeldet</th>
+                    <th>Bereich</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var forecast in forecasts)
+                { 
+                   @* if(forecast.Date > StartDatum  && forecast.Date < EndDatum)
+                    {
+                        
+                    <tr>
+                        <td>@forecast.Date.ToShortDateString()</td>
+                        <td>@forecast.TemperatureC</td>
+                        <td>@forecast.TemperatureF</td>
+                        <td>@forecast.Summary</td>
+                    </tr>
+                    }*@
+                }
+            </tbody>
+        </table>
+    }
+    <br />
+    <h5>Diese Bescheinigung ist machinell erstellt und hat mit oder ohne Unterschrift keinen Wert!</h5>
+}
+else
+{   
+    <h3 class="bg-light">Sie sollen sich erst einlogen!</h3><h1>&#x1F44A;&#128545;</h1>
+}
+
+@code {
+    //private WeatherForecast[]? forecasts;
+    private string forecasts = null;
+    DateOnly StartDatum { get; set; } = DateOnly.FromDateTime(DateTime.Today.AddMonths(-1));
+    DateOnly EndDatum { get; set; } = DateOnly.FromDateTime(DateTime.Today.AddDays(1).AddTicks(-1));
+    
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationStateTask { get; set; }
+    string userName = string.Empty;
+    protected override async Task OnInitializedAsync()
+    {
+        //forecasts = await ForecastService.GetForecastAsync(DateOnly.FromDateTime(DateTime.Now));
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            // User is logged in
+            userName = user.Identity.Name;
+        }
+        else
+        {
+            // User is not logged in
+            userName = string.Empty;
+        }
+    }
+    private void Print()
+    {
+        JSRuntime.InvokeVoidAsync("Print");
+    }
+
+    public void OnRangeSelect(DateRange range)
+    {
+
+        //Use range.Start and range.End here
+        StartDatum = DateOnly.FromDateTime( range.Start.Date);
+        EndDatum = DateOnly.FromDateTime( range.End.Date);
+    }
+
+
+}

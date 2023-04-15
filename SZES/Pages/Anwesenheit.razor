@@ -1,0 +1,132 @@
+﻿@page "/anwesenheit"
+@using SZES.Data
+@using SZES.Models;
+
+<PageTitle>Anwesenheit</PageTitle>
+
+@if (!(userEmail == string.Empty))
+{
+    <h4 class="bg-light">@titleText 
+        @if(titleText == "Bitte melden Sie sich an!")
+        {
+            <span>&#128521;</span>
+        }
+        @if(titleText =="Bitte melden Sie sich ab!")
+        {
+            <span>&#128540;</span>
+        }   
+        @if (titleText == "Sie sind jetzt abgemeldet. Schönen Feierabend!")
+        {
+            <span>&#127867;</span>
+        }
+    </h4>
+    <h4>Hallo: @userEmail</h4>
+
+    <button class="btn @(btnText == "Anmelden"? "btn-success" : "btn-danger")" @onclick="Anmeldung">@btnText </button><br /><br />
+   
+    <div class="form-control-sm w-50">
+                <label class="col-form-label-lg">Bitte wählen Sie aus, womit Sie heute Ihre Zeit verlieren möchten?</label><br>
+                <select class="form-select" @bind="bereich">
+                    <option value="@bereich">- - -</option>
+                    <option>Vögel füttern</option>
+                    <option>Straße kehren</option>
+                    <option>Kaffee kochen</option>
+                    <option>Blumen gießen</option>
+                </select>
+    </div><br />
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Anmeldung</th>
+                <th>Abmeldung</th>
+                <th>Bereich</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @*@foreach (var meldedata in anwesenheitList)
+            {
+                <tr>
+                    <td>@meldedata.Datum.ToString()</td>
+                    <td>@meldedata.AnmeldeZeit</td>
+                    <td>@meldedata.AbmeldeZeit</td>
+                    <td>@meldedata.Bereich</td>
+                </tr>
+            }*@
+
+        </tbody>
+    </table>
+}
+else
+{
+    <h3 class="bg-light">Sie sollen sich erst einlogen!</h3><h1>&#x1F4AA;&#128545;</h1>
+    
+}
+@code {
+    
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string abmeldeZeit = string.Empty;
+    string btnText = "Anmelden";
+    string titleText = "Bitte melden Sie sich an!";
+    string bereich = "--";
+    //List<MeldeDaten> anwesenheitList = new List<MeldeDaten>();
+    
+    //string userEmail = string.Empty;
+    string userEmail = "test@test.de";
+    string userName = string.Empty;
+    ZeiterfassungContext dbContext = new ZeiterfassungContext();
+    Azubi azubi = new Azubi();
+    
+    private void Anmeldung()
+    {
+
+        //Last().Datum == DateOnly.FromDateTime(DateTime.Now)
+        //if(!dbContext.Anwesenheits.Any() || dbContext.Anwesenheits.Last().Datum.)
+        //{   
+        //    //anwesenheitList.Add(new MeldeDaten(bereich));
+        //    btnText = "Abmelden";
+        //    titleText = "Bitte melden Sie sich ab!";
+
+        //}
+        //else
+        //{
+        //    //var item = anwesenheitList.Last();
+        //    item.AbmeldeZeit = TimeOnly.FromDateTime(DateTime.Now).ToString("HH:mm");
+        //    btnText = "Anmelden";
+        //    titleText = "Sie sind jetzt abgemeldet. Schönen Feierabend!";
+        //    bereich = "--";
+        //}
+    }
+
+    void OnSelect (ChangeEventArgs e)
+        {
+            bereich = e.Value.ToString();
+            
+        }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            // User is logged in
+            userEmail = user.Identity.Name;
+           // azubi = (Azubi)dbContext.Azubis.Where(a => a.Email == userEmail);
+           // userName = azubi.Name;
+
+        }
+        else
+        {
+            // User is not logged in
+            userEmail = string.Empty;
+        }
+    }
+}
+
+
+    
